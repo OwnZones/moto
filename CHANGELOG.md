@@ -15,6 +15,8 @@ Moto Changelog
     * Implemented CloudWatch get_metric_statistics
     * Improved Cloudformation EC2 support
     * Implemented Cloudformation change_set endpoints
+    * Ensured only one decider task runs at any given time
+
     
 1.1.25
 -----

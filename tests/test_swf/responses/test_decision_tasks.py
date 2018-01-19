@@ -5,6 +5,7 @@ from moto import mock_swf_deprecated
 from moto.swf import swf_backend
 
 from ..utils import setup_workflow
+import sure  # noqa
 
 
 # PollForDecisionTask endpoint
@@ -25,6 +26,25 @@ def test_poll_for_decision_task_when_one():
 
     resp[
         "events"][-1]["decisionTaskStartedEventAttributes"]["identity"].should.equal("srv01")
+
+
+@mock_swf_deprecated
+def test_concurrent_decision_tasks():
+    conn = setup_workflow()
+
+    conn.signal_workflow_execution(
+        "test-domain", "my_signal", "uid-abcd1234", "my_input", conn.run_id)
+
+    resp1 = conn.poll_for_decision_task("test-domain", "queue")
+    resp1.should.have.key("taskToken")
+
+    resp2 = conn.poll_for_decision_task("test-domain", "queue")
+    resp2.should.equal({"previousStartedEventId": 0, "startedEventId": 0})
+
+    conn.respond_decision_task_completed(resp1["taskToken"])
+
+    resp3 = conn.poll_for_decision_task("test-domain", "queue")
+    resp3.should.have.key("taskToken")
 
 
 @mock_swf_deprecated
