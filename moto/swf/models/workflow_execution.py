@@ -263,6 +263,9 @@ class WorkflowExecution(BaseModel):
         self.schedule_decision_task()
 
     def _schedule_decision_task(self):
+        if self.open_counts["openDecisionTasks"] == 1 and not any(task.started for task in self.domain.decision_tasks):
+            return
+
         evt = self._add_event(
             "DecisionTaskScheduled",
             start_to_close_timeout=self.task_start_to_close_timeout,

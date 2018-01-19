@@ -191,7 +191,7 @@ class SWFBackend(BaseBackend):
         for _task_list, tasks in domain.decision_task_lists.items():
             if _task_list == task_list:
                 candidates += [t for t in tasks if t.state == "SCHEDULED"]
-        if any(candidates):
+        if any(candidates) and not any(task.started for task in tasks):
             # TODO: handle task priorities (but not supported by boto for now)
             task = min(candidates, key=lambda d: d.scheduled_at)
             wfe = task.workflow_execution
