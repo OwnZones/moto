@@ -6,6 +6,7 @@ from moto.swf import swf_backend
 
 from ..utils import setup_workflow
 
+import sure  # noqa
 
 # PollForDecisionTask endpoint
 @mock_swf_deprecated
@@ -339,3 +340,20 @@ def test_respond_decision_task_completed_with_schedule_activity_task():
     resp = conn.describe_workflow_execution(
         "test-domain", conn.run_id, "uid-abcd1234")
     resp["latestActivityTaskTimestamp"].should.equal(1420113600.0)
+
+
+@mock_swf_deprecated
+def test_dont_start_decision_task_if_one_is_already_running():
+    conn = setup_workflow()
+
+    resp1 = conn.poll_for_decision_task("test-domain", "queue")
+    types1 = [evt["eventType"] for evt in resp1["events"]]
+
+    types1.should.equal([
+        "WorkflowExecutionStarted",
+        "DecisionTaskScheduled",
+        "DecisionTaskStarted",
+    ])
+
+    resp2 = conn.poll_for_decision_task("test-domain", "queue")
+    resp2.should.equal({"previousStartedEventId": 0, "startedEventId": 0})

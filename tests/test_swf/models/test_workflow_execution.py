@@ -499,3 +499,27 @@ def test_timeouts_are_processed_in_order_and_reevaluated():
             "DecisionTaskStarted",
             "WorkflowExecutionTimedOut",
         ])
+
+
+def test_dont_schedule_decision_if_a_decision_is_already_scheduled_and_not_running():
+    wfe = make_workflow_execution()
+    wfe.open_counts["openDecisionTasks"].should.equal(0)
+
+    wfe.schedule_decision_task()
+    wfe.open_counts["openDecisionTasks"].should.equal(1)
+
+    wfe.schedule_decision_task()
+    wfe.open_counts["openDecisionTasks"].should.equal(1)
+
+
+def test_schedule_decision_if_existing_decision_is_running():
+    wfe = make_workflow_execution()
+    wfe.open_counts["openDecisionTasks"].should.equal(0)
+
+    wfe.schedule_decision_task()
+    wfe.open_counts["openDecisionTasks"].should.equal(1)
+
+    wfe.decision_tasks[0].start("evt_id")
+
+    wfe.schedule_decision_task()
+    wfe.open_counts["openDecisionTasks"].should.equal(2)
