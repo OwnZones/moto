@@ -47,7 +47,22 @@ def test_signal_workflow_execution():
     wfe = conn.describe_workflow_execution(
         "test-domain", run_id, "uid-abcd1234")
 
-    wfe["openCounts"]["openDecisionTasks"].should.equal(2)
+    wfe["openCounts"]["openDecisionTasks"].should.equal(1)
+
+@mock_swf_deprecated
+def test_signal_workflow_execution_without_runId():
+    conn = setup_swf_environment()
+    hsh = conn.start_workflow_execution(
+        "test-domain", "uid-abcd1234", "test-workflow", "v1.0")
+    run_id = hsh["runId"]
+
+    wfe = conn.signal_workflow_execution(
+        "test-domain", "my_signal", "uid-abcd1234", "my_input")
+
+    wfe = conn.describe_workflow_execution(
+        "test-domain", run_id, "uid-abcd1234")
+
+    wfe["openCounts"]["openDecisionTasks"].should.equal(1)
 
 @mock_swf_deprecated
 def test_start_already_started_workflow_execution():
